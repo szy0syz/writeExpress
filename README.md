@@ -83,7 +83,8 @@ proto.handle = function (req, res) {
 }
 
 module.exports = createServer;
-///////////////////////////
+
+///////////////////////////////
 
 
 ////////app.js/////////
@@ -142,6 +143,61 @@ server.listen(8080, function () {
 
 ----------
 
-## 第二节 提取非业务中间件
+## 第2节 提取非业务中间件
 
+- 我们将为req和res封装属性的中间件单独提取出来，取名为middle.js。
+    - req封装属性有：`req.path` 和 `req.query`
+    - req封装属性有： `res.send()`
 
+```js
+// middle.js
+var url = require('url');
+
+module.exports = function (app) {
+    app.use(function (req, res, next) {
+        var urlObj = url.parse(req.url, true);
+        var pathname = urlObj.pathname;
+        var query = urlObj.query;
+        // 为方便使用者在req中添加两个属性
+        req.path = pathname;
+        req.query = query;
+        next();
+    });
+
+    app.use(function (req, res, next) {
+        // 给res添加一个业务方法
+        res.send = function (data) {
+            res.writeHead(200, { 'Content-Type': 'text/html;charset=utf-8' });
+            res.end(data);
+        }
+        next();
+    });
+}
+
+//////////////////////////////////
+
+// 在main.js中使用时需传入app实例
+require('./2.middle')(app);
+```
+
+----------
+
+## 第3节 在connect类新增listen()方法
+
+Express不是带了个app.listen()方法听方便的，我们也整一个。对了，记得返回实例，要链式编程不是嘛。
+
+```js
+// connect.js: 新增 listen() 创建并启动服务
+proto.listen = function (port, callback) {
+  console.log(this);
+  var server = http.createServer(this); 
+  return server.listen(port,callback);  // app.listen(8080) -> this == app
+}
+
+//////////////////////////////////
+
+// main.js: 使用listen()方法
+app.listen(8080, function() {
+  console.log('Server in running on %d port.' ,8080);
+})
+```
