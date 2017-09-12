@@ -199,3 +199,64 @@ app.listen(8080, function() {
   console.log('Server in running on %d port.' ,8080);
 })
 ```
+
+----------
+
+## 第4节 构建路由
+
+看看业务核心函数中的逻辑判断，我也是醉了，赶紧操刀改造吧！
+
+```js
+if (req.path === '/') {
+    ...
+} else if (req.path === '/articles') {
+    ...
+} else {
+    ...
+}
+```
+
+1. 在connect.js中的use方法下手(后续会再次升级)，原来只能传入一个参数，现在我们升级成能传入两个参数`route`和`fn`
+2. use()方法中判断第一个参数传的是路由不，不是就当纯中间件处理，且推入stack存储时要存俩个参数了
+
+```js
+proto.use = function (route, fn) {
+  var handle = fn;
+  var path = route;
+  // 那就说明没传路由，视为中间件
+  if (typeof route !== 'string') {
+    // 那么就让第一个参数等于handle
+    handle = route;
+    // 默认为根目录
+    path = '/';
+  }
+  this.stack.push({ handle: handle, path: path });
+}
+
+proto.handle = function (req, res) {
+  var stack = this.stack;
+  var index = 0;
+  function next() {
+    var layer = stack[index++];
+    var route = layer.path;
+    var handle = layer.handle;
+
+    var path = url.parse(req.url).pathname;
+    // 用startsWith有bug，后面二次改造
+    if (path.startsWith(route)) {
+      // 调用中间件
+      handle(req, res, next);
+    } else {
+      next();
+    }
+  }
+  next();
+}
+```
+
+----------
+
+## 
+
+
+----------
