@@ -86,13 +86,12 @@ module.exports = createServer;
 
 ///////////////////////////////
 
-
 ////////app.js/////////
 var http = require('http');
 var url = require('url');
 var path = require('path');
 var querystring = require('querystring');
-var connect = require('./2.connect');
+var connect = require('./connect');
 var articles = {
   1: '第一篇文章的详情',
   2: '第二篇文章的详情',
@@ -101,11 +100,10 @@ var articles = {
 
 var app = connect();
 app.use(function (req, res, next) {
-  var pathname = url.parse(req.url, true).pathname;
-  var query = urlObj.query;
+  var urlObj = url.parse(req.url, true)
   // 为方便使用者在req中添加两个属性
-  req.path = pathname;
-  req.query = query;
+  req.path = urlObj.pathname;
+  req.query = urlObj.query;
   next();
 });
 
@@ -131,7 +129,7 @@ app.use(function(req, res) {
 var server = http.createServer(app);
 
 server.listen(8080, function () {
-  console.log('server is running...');
+  console.log('Server is running on %d port.', 8080);
 });
 //////////////////////////
 ```
