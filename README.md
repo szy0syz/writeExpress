@@ -479,11 +479,35 @@ app.use('/', function (req, res) {
 
 ## 第08节 升级路由，添加next机制
 
+> ...有点难，后面点慢慢加，先捏“软柿子”。
 
 ----------
 
 ## 第09节 实现静态资源服务中间件
 
+- 在项目根目录下新建public文件夹，客户端请求过来先过public文件夹里找文件，没有再next()下一个中间件。
+- 读取文件是用可读流读文件，如果触发可写流的error事件就next，否则就pipe到res里。
+
+```js
+//// static.jd 中间件
+"use strict";
+
+var fs = require('fs');
+var path = require('path');
+
+module.exports = function (app) {
+  app.use(function (req, res, next) {
+    var rs = fs.createReadStream(path.join(__dirname, 'public', req.path));
+    rs.on('error', function () {
+      // 如果取静态文件夹读文件没读到触发error事件，则调用next()方法
+      next();
+    });
+    rs.pipe(res);
+  });
+}
+```
+
+- 中间件写好了，我们在根目录创建`/public`目录，新建一个`data.txt`文件，内容也叫`data.txt`，之后然后就OK了。
 
 ----------
 
