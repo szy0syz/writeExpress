@@ -355,11 +355,59 @@ function compile(template, obj) {
 }
 
 ////////注册模板引擎
-require('./2.render')(app);
+require('./render')(app);
 
 ////////使用模板引擎
 res.render('./index.szy', { articles: articles })
 ```
+
+- 创建模板
+
+```html
+<!-- filename: index.szy -->
+<ul>
+    <% for(var i=0; i < data.articles.length; i++) { %>
+        <li>
+            <a href="/article?id=<%= data.articles[i].id %>">
+                <%= data.articles[i].title %>
+            </a>
+        </li>
+    <% } %>
+</ul>
+```
+
+- 修改路由文件
+
+```js
+///////测试数据/////////
+var articles = [
+  {
+    id: 1,
+    title: '第一篇文章',
+    detail: '第一篇文章内容在此'
+  },
+  {
+    id: 2,
+    title: '第二篇文章',
+    detail: '第二篇文章内容在此'
+  },
+  {
+    id: 3,
+    title: '第三篇文章',
+    detail: '第三篇文章内容在此'
+  }
+];
+///////////////////////
+
+app.use('/list', function (req, res) {
+  res.render('./index.szy', { articles: articles })
+})
+
+app.use('/article', function (req, res) {
+  res.send(articles[req.query.id - 1].detail);
+})
+```
+
 
 ----------
 
@@ -386,16 +434,6 @@ proto.use = function (route, fn) {
 }
 
 proto.handle = function (req, res) {
-  // 就目前而言stack数组里有这些东西
-  // [
-  //   { 'path': '/', 'handle': '给req上添加query等共有属性的中间件' },
-  //   { 'path': '/', 'handle': '给res添加send方法的中间件' },
-  //   { 'path': '/', 'handle': '给res添加render方法的中间件' },
-  //   { 'path': '/list', 'handle': '路由'},
-  //   { 'path': '/article', 'handle': '路由'},
-  //   { 'path': '/', 'handle': '最终404路由'},
-  // ]
-  // 每一个请求，都会进该函数一次，然后递归调用上面这6个中间件
   var stack = this.stack;
   var index = 0;
   function next() {
