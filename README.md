@@ -511,24 +511,63 @@ module.exports = function (app) {
 
 ----------
 
-## 第10节 实现请求体参数处理中间件
+## 第10节 实现cookie-parser中间件几res.cookie()方法
+
+- http特点：web应用是基于HTTP协议的，而HTTP协议恰恰是一种无状态协议
+- cookie：是一种网站为了辨别用户身份，进行绘画跟踪而存储在客户端上的数据
+  - 通过响应头向客户端设置cookie: `Set-Cookie: name=jerry`
+  - 读取客户端过来的cookie: `Cookie：key1=val1;key2=val2`
+- 实现：
+  - 使用node内置`querystring`模块转换cookie字符串(说白了传来的cookie也是查询字符串)
+  - 分别给`req`和`res`添加两个属性`cookies()`和`myCookie()`
+
+```js
+var querystring = require('querystring');
+function myCookie(name, val, options) {
+  var opts = options || {};
+  var parts = [name + '=' + val];
+  if (opts.maxAge) {
+    parts.push('Max-Age=' + Number(opts.maxAge));
+  }
+  if (opts.domain) {
+    parts.push('Domain=' + opts.domain);
+  }
+  if (opts.path) {
+    parts.push('Path=' + opts.path);
+  }
+  if (opts.expires) {
+    parts.push('Expires=' + opts.expires.toUTCString());
+  }
+  if (opts.httpOnly) {
+    parts.push('HttpOnly');
+  }
+  if (opts.secure) {
+    parts.push('Secure');
+  }
+
+  this.append('Set-Cookie', parts.join('; '));
+
+  return this;
+}
+
+module.exports = function (app) {
+  app.use(function (req, res, next) {
+    req.cookies = querystring.parse(req.headers.cookie, '; ', '=');
+    res.myCookie = myCookie;
+    next();
+  });
+}
+```
+
+----------
+
+## 第11节 实现express-session中间件(内存型)
 
 
 
 ----------
 
-## 第11节 实现cookieParser中间件
-
-
-----------
-
-## 第12节 实现express-session中间件(内存型)
-
-
-
-----------
-
-## 第13节 实现express-session扩展插件(文件存储型)
+## 第12节 实现express-session扩展插件(文件存储型)
 
 
 
