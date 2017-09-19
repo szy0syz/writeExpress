@@ -379,6 +379,7 @@ res.render('./index.szy', { articles: articles })
 - 修改路由文件
 
 ```js
+///////route.je////////
 ///////测试数据/////////
 var articles = [
   {
@@ -416,6 +417,7 @@ app.use('/article', function (req, res) {
 > 原来路由不能匹配首页`/`，现在通过在注册中间件时添加`isRoute`属性，如果为路由中间件再进行一次判断
 
 ```js
+//// 修改核心connect.js文件
 proto.use = function (route, fn) {
   var handle = fn;
   var path = route;
@@ -464,6 +466,13 @@ proto.handle = function (req, res) {
   }
   next();
 }
+
+//////////////////////////////
+
+// bug修复，重新注册
+app.use('/', function (req, res) {
+  res.render('./index.szy', { articles: articles });
+});
 ```
 
 ----------
